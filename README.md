@@ -19,7 +19,7 @@ This plugin helps fully translate the game and adds some improvements:
 ### Uncensor
 This plugin uncensors the game by removing mosaic effects and replacing textures.
 
-To enable the uncensor after installing it you have to go to the settings menu and in the "Mosaic type" dropdown select the newly added option "None".
+To enable the uncensor after installing it you have to go to the settings menu and in the "Mosaic type" dropdown select the newly added option "OFF".
 
 You can find the uncensored textures inside `SiH_Uncensor\replacements` if you'd like to improve them or make your own.
 Seems like only `sectional.png` is used out of the two internal textures.

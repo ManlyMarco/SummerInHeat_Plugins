@@ -17,7 +17,7 @@ namespace SiH_Uncensor
         public const string Version = "1.0.0";
 
         private const int NoMosaicId = 4;
-        private const string NoMosaicStr = "非表示";
+        private const string NoMosaicStr = "OFF";
 
         internal static new ManualLogSource Logger;
 
