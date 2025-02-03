@@ -1,0 +1,259 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Text;
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
+using BepInEx.Logging;
+using HarmonyLib;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
+
+namespace SiH_Tweaks
+{
+    [BepInPlugin(GUID, DisplayName, Version)]
+    [BepInDependency(ConfigurationManager.ConfigurationManager.GUID, ConfigurationManager.ConfigurationManager.Version)]
+    [BepInDependency("gravydevsupreme.xunity.autotranslator", BepInDependency.DependencyFlags.SoftDependency)]
+    public class SummerHeatTweaksPlugin : BaseUnityPlugin
+    {
+        public const string Version = "1.0";
+        public const string GUID = "SiH_Tweaks";
+        public const string DisplayName = "Translation fixes and other tweaks";
+
+        internal static new ManualLogSource Logger;
+
+        private static ConfigEntry<KeyboardShortcut> _showDebugMode;
+        private static ConfigEntry<bool> _showConfigManButton;
+
+        private static ConfigurationManager.ConfigurationManager _configMan;
+
+        private static bool _isJp = true;
+
+        protected void Awake()
+        {
+            Logger = base.Logger;
+
+            try
+            {
+                var lang = Traverse.CreateWithType("XUnity.AutoTranslator.Plugin.Core.AutoTranslatorSettings").Property<string>("DestinationLanguage").Value;
+                _isJp = string.IsNullOrEmpty(lang) || lang.StartsWith("ja");
+                Logger.LogInfo($"Running in {(_isJp ? "Japanese" : "non-Japanese")} mode");
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning("AutoTranslator is not installed or is outdated, some features will not work properly. Error: " + e.Message);
+            }
+
+            if (!_isJp)
+            {
+                var t = NativeMethods.GetWindowTitle();
+                if (t != null && t.Contains("夏のサカり"))
+                    t = t.Replace("夏のサカり", "Summer in Heat");
+                else
+                    t = $"Summer in Heat v{Application.version}";
+                NativeMethods.SetWindowTitle(t);
+            }
+
+            _configMan = (ConfigurationManager.ConfigurationManager)Chainloader.PluginInfos[ConfigurationManager.ConfigurationManager.GUID].Instance;
+
+            _showDebugMode = Config.Bind("General", "Open debug menu", KeyboardShortcut.Empty, "Pressing this key on the Title screen will open the debug menu. It's not meant to be used by users but still works to unlock everything or change story progress.");
+
+            _showConfigManButton = Config.Bind("General", "Show Plugin settings button in the Settings screen", true, "Changes take effect after a game restart.");
+
+            Harmony.CreateAndPatchAll(typeof(Hooks));
+
+            SceneManager.sceneLoaded += (scene, mode) => Logger.Log(LogLevel.Debug, $"SceneManager.sceneLoaded - Name=[{scene.name}] Mode=[{mode}]");
+        }
+
+        private static class NativeMethods
+        {
+            [DllImport("user32.dll")] private static extern bool SetWindowText(IntPtr hwnd, string lpString);
+            [DllImport("user32.dll")] private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+            [DllImport("user32.dll")] private static extern IntPtr GetActiveWindow();
+
+            public static string GetWindowTitle()
+            {
+                const int size = 256;
+                var sb = new StringBuilder(size);
+                var activeWindow = GetActiveWindow();
+
+                if (activeWindow != IntPtr.Zero)
+                {
+                    if (GetWindowText(activeWindow, sb, size) > 0)
+                        return sb.ToString();
+                    else
+                        Logger.LogWarning("Failed to get window title text: GetWindowText returned 0");
+                }
+                else
+                {
+                    Logger.LogWarning("Failed to get window title text: GetActiveWindow returned a null pointer");
+                }
+                return null;
+            }
+            public static void SetWindowTitle(string name)
+            {
+                if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
+                var activeWindow = GetActiveWindow();
+                if (activeWindow != IntPtr.Zero)
+                    SetWindowText(activeWindow, name);
+                else
+                    Logger.LogWarning("Failed to change window title text: GetActiveWindow returned a null pointer");
+            }
+        }
+
+        private static class Hooks
+        {
+            #region Fix exception logging
+
+            /// <summary>
+            /// Stop the game from disabling logging of unhandled exceptions
+            /// </summary>
+            [HarmonyTranspiler]
+            [HarmonyPatch(typeof(SaveCheck), "Awake")]
+            [HarmonyPatch(typeof(ConfigSetting), "Update")]
+            private static IEnumerable<CodeInstruction> ConfigSettingUpdateTranspiler(IEnumerable<CodeInstruction> instructions)
+            {
+                // 281	0407	call	class [UnityEngine.CoreModule]UnityEngine.ILogger [UnityEngine.CoreModule]UnityEngine.Debug::get_unityLogger()
+                // 282	040C	ldc.i4.0
+                // 283	040D	callvirt	instance void [UnityEngine.CoreModule]UnityEngine.ILogger::set_logEnabled(bool)
+                return new CodeMatcher(instructions).MatchForward(false,
+                                                                  new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(Debug), nameof(Debug.unityLogger))),
+                                                                  new CodeMatch(OpCodes.Ldc_I4_0),
+                                                                  new CodeMatch(OpCodes.Callvirt, AccessTools.PropertySetter(typeof(ILogger), nameof(ILogger.logEnabled))))
+                                                    .ThrowIfInvalid("Hook point not found")
+                                                    .SetAndAdvance(OpCodes.Nop, null)
+                                                    .SetAndAdvance(OpCodes.Nop, null)
+                                                    .SetAndAdvance(OpCodes.Nop, null)
+                                                    .Instructions();
+            }
+
+            /// <summary>
+            /// Fix exception spam when right clicking in ADV scenes
+            /// </summary>
+            [HarmonyFinalizer]
+            [HarmonyPatch(typeof(XYZ), "Update")]
+            private static void XYZ_Update_ExceptionEater(XYZ __instance, ref Exception __exception)
+            {
+                if (__exception is NullReferenceException)
+                    __exception = null;
+            }
+
+            #endregion
+
+            /// <summary>
+            /// Debug menu hotkey
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(TitleScript), "Update")]
+            private static void TitleScriptUpdatePostfix()
+            {
+                if (_showDebugMode.Value.IsDown())
+                {
+                    var uib = FindObjectOfType<TitleScript>()?.DebugBt.GetComponent<UIButton>();
+                    if (uib != null) Traverse.Create(uib).Method("OnClick").GetValue();
+                }
+            }
+
+            /// <summary>
+            /// Show the Plugin settings button in the Settings screen
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyWrapSafe]
+            [HarmonyPatch(typeof(ConfigSetting), "Start")]
+            private static void ConfigSettingHook(ConfigSetting __instance)
+            {
+                if (!_showConfigManButton.Value) return;
+
+                var sideButtons = __instance.transform.Cast<Transform>().Where(x => x.gameObject.activeSelf && x.name.StartsWith("ConfBt0")).OrderByDescending(x => x.name).ToList();
+                var top = sideButtons[1]; //__instance.transform.Find("ConfBt03");
+                var bottom = sideButtons[0]; //__instance.transform.Find("ConfBt04");
+
+                var newbt = Instantiate(bottom.gameObject, bottom.parent);
+                newbt.name = "ConfBtPluginSettings";
+
+                newbt.transform.localPosition = new Vector3(bottom.localPosition.x, bottom.localPosition.y - Mathf.Abs(top.localPosition.y - bottom.localPosition.y), bottom.localPosition.z);
+
+                var label = newbt.GetComponentInChildren<UILabel>();
+                label.text = "Plugin settings";
+
+                var button = newbt.GetComponent<UIButton>();
+                button.onClick_L.Clear();
+
+                button.onClick_L.Add(new EventDelegate(() => _configMan.DisplayingWindow = true));
+            }
+
+            /// <summary>
+            /// Look for local manual file and open it instead of the online manual
+            /// </summary>
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.OnlineManual))]
+            private static bool OnlineManualHook(ConfigSetting __instance)
+            {
+                try
+                {
+                    var localUrl = Path.GetFullPath(Paths.GameRootPath + "/../Manual/" + (_isJp ? "manual_jp.html" : "manual_en.html"));
+                    Logger.LogDebug("Trying to open " + localUrl);
+                    if (File.Exists(localUrl))
+                    {
+                        Process.Start(new ProcessStartInfo(localUrl) { UseShellExecute = true });
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e);
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Fix character names in backlog not being translated correctly, resulting in the entire backlog text being auto-translated
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ADV_Loader), nameof(ADV_Loader.LineLoad))]
+            private static void BackLogTranslationFix(ADV_Loader __instance, ref IEnumerator __result)
+            {
+                IEnumerator CoPostifx(IEnumerator orig)
+                {
+                    yield return orig;
+                    var log = __instance.AllLog.Last();
+                    if (!string.IsNullOrWhiteSpace(log?.TextLog))
+                    {
+                        var split = log.TextLog.Split(new[] { '\n' }, 2, StringSplitOptions.None);
+                        if (split.Length == 2)
+                        {
+                            var name = split[0];
+                            if (TranslationHelper.TryTranslate(name, out var nameTl))
+                                log.TextLog = nameTl + "\n" + split[1];
+                        }
+                    }
+                }
+                __result = CoPostifx(__result);
+            }
+
+           // /// <summary>
+           // /// Fix backlog entries not appearing when it's first opened
+           // /// </summary>
+           // [HarmonyPostfix]
+           // [HarmonyWrapSafe]
+           // [HarmonyPatch(typeof(ADV_Loader), nameof(ADV_Loader.LogDis))]
+           // private static void BackLogDisplayFix(ADV_Loader __instance)
+           // {
+           //     IEnumerator DelayedLogDisp()
+           //     {
+           //         yield return null;
+           //         __instance.LogDisp();
+           //     }
+           //     __instance.StartCoroutine(DelayedLogDisp());
+           // }
+        }
+    }
+}
