@@ -51,16 +51,6 @@ namespace SiH_Tweaks
                 Logger.LogWarning("AutoTranslator is not installed or is outdated, some features will not work properly. Error: " + e.Message);
             }
 
-            if (!_isJp)
-            {
-                var t = NativeMethods.GetWindowTitle();
-                if (t != null && t.Contains("夏のサカり"))
-                    t = t.Replace("夏のサカり", "Summer in Heat");
-                else
-                    t = $"Summer in Heat v{Application.version}";
-                NativeMethods.SetWindowTitle(t);
-            }
-
             _configMan = (ConfigurationManager.ConfigurationManager)Chainloader.PluginInfos[ConfigurationManager.ConfigurationManager.GUID].Instance;
 
             _showDebugMode = Config.Bind("General", "Open debug menu", KeyboardShortcut.Empty, "Pressing this key on the Title screen will open the debug menu. It's not meant to be used by users but still works to unlock everything or change story progress.");
@@ -72,31 +62,19 @@ namespace SiH_Tweaks
             SceneManager.sceneLoaded += (scene, mode) => Logger.Log(LogLevel.Debug, $"SceneManager.sceneLoaded - Name=[{scene.name}] Mode=[{mode}]");
         }
 
+        protected void Start()
+        {
+            if (_isJp) return;
+
+            var store = FindObjectOfType<SaveCheck>().StoreName;
+            NativeMethods.SetWindowTitle($"Summer in Heat v{Application.version}_{store}");
+        }
+
         private static class NativeMethods
         {
             [DllImport("user32.dll")] private static extern bool SetWindowText(IntPtr hwnd, string lpString);
-            [DllImport("user32.dll")] private static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
             [DllImport("user32.dll")] private static extern IntPtr GetActiveWindow();
 
-            public static string GetWindowTitle()
-            {
-                const int size = 256;
-                var sb = new StringBuilder(size);
-                var activeWindow = GetActiveWindow();
-
-                if (activeWindow != IntPtr.Zero)
-                {
-                    if (GetWindowText(activeWindow, sb, size) > 0)
-                        return sb.ToString();
-                    else
-                        Logger.LogWarning("Failed to get window title text: GetWindowText returned 0");
-                }
-                else
-                {
-                    Logger.LogWarning("Failed to get window title text: GetActiveWindow returned a null pointer");
-                }
-                return null;
-            }
             public static void SetWindowTitle(string name)
             {
                 if (string.IsNullOrEmpty(name)) throw new ArgumentException("Value cannot be null or empty.", nameof(name));
@@ -239,21 +217,21 @@ namespace SiH_Tweaks
                 __result = CoPostifx(__result);
             }
 
-           // /// <summary>
-           // /// Fix backlog entries not appearing when it's first opened
-           // /// </summary>
-           // [HarmonyPostfix]
-           // [HarmonyWrapSafe]
-           // [HarmonyPatch(typeof(ADV_Loader), nameof(ADV_Loader.LogDis))]
-           // private static void BackLogDisplayFix(ADV_Loader __instance)
-           // {
-           //     IEnumerator DelayedLogDisp()
-           //     {
-           //         yield return null;
-           //         __instance.LogDisp();
-           //     }
-           //     __instance.StartCoroutine(DelayedLogDisp());
-           // }
+            // /// <summary>
+            // /// Fix backlog entries not appearing when it's first opened
+            // /// </summary>
+            // [HarmonyPostfix]
+            // [HarmonyWrapSafe]
+            // [HarmonyPatch(typeof(ADV_Loader), nameof(ADV_Loader.LogDis))]
+            // private static void BackLogDisplayFix(ADV_Loader __instance)
+            // {
+            //     IEnumerator DelayedLogDisp()
+            //     {
+            //         yield return null;
+            //         __instance.LogDisp();
+            //     }
+            //     __instance.StartCoroutine(DelayedLogDisp());
+            // }
         }
     }
 }
