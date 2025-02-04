@@ -21,9 +21,14 @@ namespace SiH_Uncensor
 
         internal static new ManualLogSource Logger;
 
+        private static bool _enableOnStart;
+
         protected void Awake()
         {
             Logger = base.Logger;
+
+            _enableOnStart = Config.Bind("General", "Enable uncensor on game start", true, "Change the 'Mosaic type' setting to OFF on every game start. Disable if you'd like to use a mosaic censor all the time.").Value;
+
 
             TextureReplacer.ReloadReplacementImages(Info.Location);
 
@@ -55,6 +60,12 @@ namespace SiH_Uncensor
             [HarmonyPatch(typeof(ConfigSetting), "Awake")]
             private static void ConfigSetting_Awake_Postfix(ConfigSetting __instance, UIPopupList ___ConfBt_MosaicType_List, UIPopupList ___HS_QS09)
             {
+                if (_enableOnStart)
+                {
+                    ConfigClass.MosaicSetting = NoMosaicId;
+                    _enableOnStart = false;
+                }
+
                 ___ConfBt_MosaicType_List.AddItem(NoMosaicStr);
                 ___HS_QS09.AddItem(NoMosaicStr);
             }
@@ -73,7 +84,7 @@ namespace SiH_Uncensor
             private static void MosaicSettingHelper(string text)
             {
                 if (text == NoMosaicStr)
-                    ConfigClass.MosaicSetting = 4;
+                    ConfigClass.MosaicSetting = NoMosaicId;
             }
 
             [HarmonyPrefix]
