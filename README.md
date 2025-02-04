@@ -24,7 +24,3 @@ To enable the uncensor after installing it you have to go to the settings menu a
 You can find the uncensored textures inside `SiH_Uncensor\replacements` if you'd like to improve them or make your own.
 Seems like only `sectional.png` is used out of the two internal textures.
 The textures can be increased in size, but they must be the same aspect ratio as the original textures and the size must be in a power of 2 (e.g. 512x512, 1024x1024, 2048x2048, etc).
-
-### TranslateRedirectedResources
-A tool for translating files in the RedirectedResources folder.
-Forked from https://github.com/SpockBauru/SpockPlugins_InsultOrder/tree/9b3bae7e7f20f39aa42d58a45838f714b39d40de/TranslateRedirectedResources
