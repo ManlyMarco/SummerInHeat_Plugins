@@ -1,13 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiH_Tweaks", "SiH_Tweaks\SiH_Tweaks.csproj", "{BAA2F5C3-A6D7-4CB1-8AE0-E9A6E405696D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiH_Uncensor", "SiH_Uncensor\SiH_Uncensor.csproj", "{F42BBA1A-9F17-421A-906E-D7C01A8C0681}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TranslateRedirectedResources", "TranslateRedirectedResources\TranslateRedirectedResources.csproj", "{B55AF37A-B08E-4A74-9ADC-AAEBCFB4BBA5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution", "_Solution", "{65E5A8F9-5C31-4DA6-9D36-A802CDED1730}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

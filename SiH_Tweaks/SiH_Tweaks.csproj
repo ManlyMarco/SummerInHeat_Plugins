@@ -1,11 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!-- This is the master version, only change this one -->
+    <Version>1.0</Version>
+
+    <!-- Sets the 'Product name' field on the dll file -->
+    <Product>Translation fixes and other tweaks</Product>
+    <!-- Sets the 'File description' field on the dll file -->
+    <AssemblyTitle>Various fixes and improvements to translations and the game itself</AssemblyTitle>
+
     <TargetFramework>net471</TargetFramework>
     <OutputType>Library</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <OutputPath>..\bin</OutputPath>
+
+    <OutputPath>..\bin\Tweaks</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

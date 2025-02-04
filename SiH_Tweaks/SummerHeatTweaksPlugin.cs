@@ -23,9 +23,9 @@ namespace SiH_Tweaks
     [BepInDependency("gravydevsupreme.xunity.autotranslator", BepInDependency.DependencyFlags.SoftDependency)]
     public class SummerHeatTweaksPlugin : BaseUnityPlugin
     {
-        public const string Version = "1.0";
         public const string GUID = "SiH_Tweaks";
-        public const string DisplayName = "Translation fixes and other tweaks";
+        public const string DisplayName = Constants.Name;
+        public const string Version = Constants.Version;
 
         internal static new ManualLogSource Logger;
 

@@ -12,9 +12,9 @@ namespace SiH_Uncensor
     [BepInPlugin(GUID, DisplayName, Version)]
     public class SummerHeatUncensorPlugin : BaseUnityPlugin
     {
-        public const string DisplayName = "SummerInHeat Uncensor";
         public const string GUID = "SiH_Uncensor";
-        public const string Version = "1.0.0";
+        public const string DisplayName = Constants.Name;
+        public const string Version = Constants.Version;
 
         private const int NoMosaicId = 4;
         private const string NoMosaicStr = "OFF";
