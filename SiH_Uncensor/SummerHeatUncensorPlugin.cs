@@ -1,5 +1,5 @@
-using System.Collections;
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using BepInEx;
@@ -38,31 +38,22 @@ namespace SiH_Uncensor
 
         private static class Hooks
         {
+            #region Mosaic on/off
+            
             /// <summary>
-            /// Hacky fix for mob characters doing the wall position not being uncensored on map load
-            /// Changing mosaic setting to OFF afterwards fixes it
-            /// Couldn't find the core issue, this works well enough
+            /// Replacing guy's textures and materials
             /// </summary>
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(BG_Loader), nameof(BG_Loader.UpdateMaterialBG13_Body))]
-            private static void OrgySceneMozaPostfix()
+            [HarmonyPrefix]
+            [HarmonyWrapSafe]
+            [HarmonyPatch(typeof(CustomDataInputCustomManager_PC), nameof(CustomDataInputCustomManager_PC.UpdateMaterialID_Moza))]
+            private static void UpdateMaterialID_Moza_Prefix(CustomDataInputCustomManager_PC __instance, Transform ___RootBone)
             {
-                if (ConfigClass.MosaicSetting == NoMosaicId)
-                {
-                    IEnumerator DelayedCo(ConfigSetting inst)
-                    {
-                        yield return new WaitForEndOfFrame();
-                        yield return new WaitForSeconds(1);
-                        inst.MosaicSetting();
-                    }
-
-                    var configSetting = FindObjectOfType<ConfigSetting>();
-                    configSetting.StartCoroutine(DelayedCo(configSetting));
-                }
+                TextureReplacer.ReplaceMaterialsAndTextures(___RootBone.GetComponentsInChildren<Renderer>(true));
+                // Afterwards MaterialChange_Moza.MatChange is called
             }
 
             /// <summary>
-            /// The actual mosaic disabling happens here (except for the xray window)
+            /// The actual mosaic disabling for guys happens here
             /// </summary>
             [HarmonyPostfix]
             [HarmonyWrapSafe]
@@ -85,6 +76,78 @@ namespace SiH_Uncensor
                 renderer.enabled = !isDecensor;
             }
 
+            /// <summary>
+            /// The actual mosaic disabling for girls happens here (for some reason heir controller uses a different way of handling it)
+            /// </summary>
+            [HarmonyPrefix]
+            [HarmonyWrapSafe]
+            [HarmonyPatch(typeof(CustomDataInputCustomManager), nameof(CustomDataInputCustomManager.UpdateMaterialID))]
+            private static bool UpdateMaterialID_Override(CustomDataInputCustomManager __instance, string[] MeshNames, int ID, AssetBundleSystem ___AssetBundleSystem)
+            {
+                TextureReplacer.ReplaceMaterialsAndTextures(__instance.RootBone.GetComponentsInChildren<Renderer>(true));
+
+                foreach (Transform child in __instance.RootBone)
+                {
+                    if (!MeshNames.Contains(child.name)) continue;
+
+                    var mpd = child.GetComponent<MeshPrefabData>();
+                    if (mpd == null) continue;
+
+                    var renderer = child.GetComponent<SkinnedMeshRenderer>();
+
+                    if (child.name.Contains("moza"))
+                        renderer.enabled = ID != NoMosaicId;
+
+                    if (mpd.MatsNameList.Count > ID)
+                        renderer.sharedMaterials = ___AssetBundleSystem.GetMaterial(mpd.MatsNameList[ID].Mats);
+                }
+
+                return false;
+            }
+
+            private static void UpdateXrayMosaicState(Camera ___DanmenCamera)
+            {
+                if (!___DanmenCamera) return;
+
+                var mosaicEnabled = ConfigClass.MosaicSetting != NoMosaicId;
+                var xrayWindow = ___DanmenCamera.transform.parent;
+                foreach (Transform child in xrayWindow)
+                {
+                    if (child.name.Contains("moza"))
+                        child.gameObject.SetActive(mosaicEnabled);
+
+                }
+
+                TextureReplacer.ReplaceMaterialsAndTextures(xrayWindow.GetComponentsInChildren<Renderer>(true));
+            }
+
+            /// <summary>
+            /// Hacky fix for mob characters doing the wall position not being uncensored on map load.
+            /// Changing mosaic setting to OFF after the map is loaded fixes it but obviously isn't ideal.
+            /// Couldn't find the core issue, this works well enough.
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(BG_Loader), nameof(BG_Loader.UpdateMaterialBG13_Body))]
+            private static void OrgySceneMozaPostfix()
+            {
+                if (ConfigClass.MosaicSetting == NoMosaicId)
+                {
+                    IEnumerator DelayedCo(ConfigSetting inst)
+                    {
+                        yield return new WaitForEndOfFrame();
+                        yield return new WaitForSeconds(1);
+                        inst.MosaicSetting();
+                    }
+
+                    var configSetting = FindObjectOfType<ConfigSetting>();
+                    configSetting.StartCoroutine(DelayedCo(configSetting));
+                }
+            }
+
+            #endregion
+
+            #region Add OFF to mosaic dropdown
+
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.Awake))]
             private static void ConfigSetting_Awake_Postfix(ConfigSetting __instance, UIPopupList ___ConfBt_MosaicType_List, UIPopupList ___HS_QS09)
@@ -99,6 +162,9 @@ namespace SiH_Uncensor
                 ___HS_QS09.AddItem(NoMosaicStr);
             }
 
+            /// <summary>
+            /// Fix the setting getting clamped just before ConfigSetting.MosaicSetting is called
+            /// </summary>
             [HarmonyTranspiler]
             [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.MosaicSetting_Conf))]
             [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.MosaicSetting_Mini))]
@@ -129,55 +195,10 @@ namespace SiH_Uncensor
                     ___HS_QS09.value = NoMosaicStr;
                 }
 
-                // Handle xray window
-                if (___DanmenCamera)
-                {
-                    var mosaicEnabled = ConfigClass.MosaicSetting != NoMosaicId;
-                    var xrayWindow = ___DanmenCamera.transform.parent;
-                    foreach (Transform child in xrayWindow)
-                    {
-                        if (child.name.Contains("moza"))
-                            child.gameObject.SetActive(mosaicEnabled);
-
-                    }
-
-                    TextureReplacer.ReplaceMaterialsAndTextures(xrayWindow.GetComponentsInChildren<Renderer>(true));
-                }
+                UpdateXrayMosaicState(___DanmenCamera);
             }
 
-            [HarmonyPrefix]
-            [HarmonyWrapSafe]
-            [HarmonyPatch(typeof(CustomDataInputCustomManager), nameof(CustomDataInputCustomManager.UpdateMaterialID))]
-            private static bool UpdateMaterialID_Override(CustomDataInputCustomManager __instance, string[] MeshNames, int ID, AssetBundleSystem ___AssetBundleSystem)
-            {
-                TextureReplacer.ReplaceMaterialsAndTextures(__instance.RootBone.GetComponentsInChildren<Renderer>(true));
-
-                foreach (Transform child in __instance.RootBone)
-                {
-                    if (!MeshNames.Contains(child.name)) continue;
-
-                    var mpd = child.GetComponent<MeshPrefabData>();
-                    if (mpd == null) continue;
-
-                    var renderer = child.GetComponent<SkinnedMeshRenderer>();
-
-                    if (child.name.Contains("moza"))
-                        renderer.enabled = ID != NoMosaicId;
-
-                    if (mpd.MatsNameList.Count > ID)
-                        renderer.sharedMaterials = ___AssetBundleSystem.GetMaterial(mpd.MatsNameList[ID].Mats);
-                }
-
-                return false;
-            }
-
-            [HarmonyPrefix]
-            [HarmonyWrapSafe]
-            [HarmonyPatch(typeof(CustomDataInputCustomManager_PC), nameof(CustomDataInputCustomManager_PC.UpdateMaterialID_Moza))]
-            private static void UpdateMaterialID_Moza_Prefix(CustomDataInputCustomManager_PC __instance, Transform ___RootBone)
-            {
-                TextureReplacer.ReplaceMaterialsAndTextures(___RootBone.GetComponentsInChildren<Renderer>(true));
-            }
+            #endregion
         }
     }
 }
