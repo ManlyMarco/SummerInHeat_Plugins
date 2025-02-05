@@ -57,7 +57,7 @@ namespace SiH_Uncensor
             }
 
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(ConfigSetting), "Awake")]
+            [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.Awake))]
             private static void ConfigSetting_Awake_Postfix(ConfigSetting __instance, UIPopupList ___ConfBt_MosaicType_List, UIPopupList ___HS_QS09)
             {
                 if (_enableOnStart)

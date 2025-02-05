@@ -13,6 +13,9 @@
 
     <OutputPath>..\bin\Tweaks</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+    <!-- Needed by publicized assembly -->
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -26,7 +29,7 @@
 
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>E:\SummerInHeat-Ver1.00-DLsite-RJ365188\GameData\SummerInHeat_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\lib-stripped-publicized\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

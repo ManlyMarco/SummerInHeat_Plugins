@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using System.Text;
 using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
@@ -94,8 +93,8 @@ namespace SiH_Tweaks
             /// Stop the game from disabling logging of unhandled exceptions
             /// </summary>
             [HarmonyTranspiler]
-            [HarmonyPatch(typeof(SaveCheck), "Awake")]
-            [HarmonyPatch(typeof(ConfigSetting), "Update")]
+            [HarmonyPatch(typeof(SaveCheck), nameof(SaveCheck.Awake))]
+            [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.Update))]
             private static IEnumerable<CodeInstruction> ConfigSettingUpdateTranspiler(IEnumerable<CodeInstruction> instructions)
             {
                 // 281	0407	call	class [UnityEngine.CoreModule]UnityEngine.ILogger [UnityEngine.CoreModule]UnityEngine.Debug::get_unityLogger()
@@ -116,7 +115,7 @@ namespace SiH_Tweaks
             /// Fix exception spam when right clicking in ADV scenes
             /// </summary>
             [HarmonyFinalizer]
-            [HarmonyPatch(typeof(XYZ), "Update")]
+            [HarmonyPatch(typeof(XYZ), nameof(XYZ.Update))]
             private static void XYZ_Update_ExceptionEater(XYZ __instance, ref Exception __exception)
             {
                 if (__exception is NullReferenceException)
@@ -129,13 +128,13 @@ namespace SiH_Tweaks
             /// Debug menu hotkey
             /// </summary>
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(TitleScript), "Update")]
+            [HarmonyPatch(typeof(TitleScript), nameof(TitleScript.Update))]
             private static void TitleScriptUpdatePostfix()
             {
                 if (_showDebugMode.Value.IsDown())
                 {
                     var uib = FindObjectOfType<TitleScript>()?.DebugBt.GetComponent<UIButton>();
-                    if (uib != null) Traverse.Create(uib).Method("OnClick").GetValue();
+                    if (uib != null) uib.OnClick();
                 }
             }
 
@@ -144,7 +143,7 @@ namespace SiH_Tweaks
             /// </summary>
             [HarmonyPostfix]
             [HarmonyWrapSafe]
-            [HarmonyPatch(typeof(ConfigSetting), "Start")]
+            [HarmonyPatch(typeof(ConfigSetting), nameof(ConfigSetting.Start))]
             private static void ConfigSettingHook(ConfigSetting __instance)
             {
                 if (!_showConfigManButton.Value) return;
@@ -216,22 +215,6 @@ namespace SiH_Tweaks
                 }
                 __result = CoPostifx(__result);
             }
-
-            // /// <summary>
-            // /// Fix backlog entries not appearing when it's first opened
-            // /// </summary>
-            // [HarmonyPostfix]
-            // [HarmonyWrapSafe]
-            // [HarmonyPatch(typeof(ADV_Loader), nameof(ADV_Loader.LogDis))]
-            // private static void BackLogDisplayFix(ADV_Loader __instance)
-            // {
-            //     IEnumerator DelayedLogDisp()
-            //     {
-            //         yield return null;
-            //         __instance.LogDisp();
-            //     }
-            //     __instance.StartCoroutine(DelayedLogDisp());
-            // }
         }
     }
 }

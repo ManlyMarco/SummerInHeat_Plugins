@@ -51,13 +51,13 @@ namespace SiH_Uncensor
             SummerHeatUncensorPlugin.Logger.Log(LogLevel.Debug, $"Replaced {hitsShd} shaders and {hitsTex} textures in {renderers.Length} renderers");
         }
 
-        private static void ReplaceMaterialsAndTextures(Renderer renderer)
-        {
-            int hitsShd = 0, hitsTex = 0;
-            ReplaceMaterialsAndTextures(renderer, ref hitsShd, ref hitsTex);
-
-            SummerHeatUncensorPlugin.Logger.Log(LogLevel.Debug, $"Renderer={renderer} -> replaced shader={(hitsShd == 0 ? "No" : "Yes")} texture={(hitsTex == 0 ? "No" : "Yes")}");
-        }
+        //private static void ReplaceMaterialsAndTextures(Renderer renderer)
+        //{
+        //    int hitsShd = 0, hitsTex = 0;
+        //    ReplaceMaterialsAndTextures(renderer, ref hitsShd, ref hitsTex);
+        //
+        //    SummerHeatUncensorPlugin.Logger.Log(LogLevel.Debug, $"Renderer={renderer} -> replaced shader={(hitsShd == 0 ? "No" : "Yes")} texture={(hitsTex == 0 ? "No" : "Yes")}");
+        //}
 
         private static void ReplaceMaterialsAndTextures(Renderer renderer, ref int hitsShd, ref int hitsTex)
         {
