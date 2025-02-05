@@ -149,18 +149,6 @@ namespace SiH_Uncensor
             {
                 TextureReplacer.ReplaceMaterialsAndTextures(___RootBone.GetComponentsInChildren<Renderer>(true));
             }
-
-            [HarmonyPostfix]
-            [HarmonyPatch(typeof(VoiceController), "Awake")]
-            private static void VoiceController_Awake_Postfix(VoiceController __instance)
-            {
-                if (__instance.DebugLog)
-                {
-                    // Disable log updates, AT can sometimes catch those and translate garbage
-                    __instance.DebugLog.enabled = false;
-                    __instance.DebugLog.text = "";
-                }
-            }
         }
     }
 }

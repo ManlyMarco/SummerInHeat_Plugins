@@ -215,6 +215,20 @@ namespace SiH_Tweaks
                 }
                 __result = CoPostifx(__result);
             }
+
+            /// <summary>
+            /// Disable voice log updates, AT can sometimes catch those and translate garbage
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(VoiceController), "Awake")]
+            private static void VoiceController_Awake_Postfix(VoiceController __instance)
+            {
+                if (__instance.DebugLog)
+                {
+                    __instance.DebugLog.enabled = false;
+                    __instance.DebugLog.text = "";
+                }
+            }
         }
     }
 }
