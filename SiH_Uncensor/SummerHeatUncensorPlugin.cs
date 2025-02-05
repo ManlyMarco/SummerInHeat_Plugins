@@ -1,3 +1,4 @@
+using System.Collections;
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -37,6 +38,32 @@ namespace SiH_Uncensor
 
         private static class Hooks
         {
+            /// <summary>
+            /// Hacky fix for mob characters doing the wall position not being uncensored on map load
+            /// Changing mosaic setting to OFF afterwards fixes it
+            /// Couldn't find the core issue, this works well enough
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(BG_Loader), nameof(BG_Loader.UpdateMaterialBG13_Body))]
+            private static void OrgySceneMozaPostfix()
+            {
+                if (ConfigClass.MosaicSetting == NoMosaicId)
+                {
+                    IEnumerator DelayedCo(ConfigSetting inst)
+                    {
+                        yield return new WaitForEndOfFrame();
+                        yield return new WaitForSeconds(1);
+                        inst.MosaicSetting();
+                    }
+
+                    var configSetting = FindObjectOfType<ConfigSetting>();
+                    configSetting.StartCoroutine(DelayedCo(configSetting));
+                }
+            }
+
+            /// <summary>
+            /// The actual mosaic disabling happens here (except for the xray window)
+            /// </summary>
             [HarmonyPostfix]
             [HarmonyWrapSafe]
             [HarmonyPatch(typeof(MaterialChange_Moza), nameof(MaterialChange_Moza.MatChange))]
@@ -48,12 +75,14 @@ namespace SiH_Uncensor
 
                 var isDecensor = ID == NoMosaicId;
 
+                var overrideEye = __instance.GetComponent<OverrideEye>();
+                if (overrideEye != null) overrideEye.enabled = !isDecensor;
+                // Needs to be disabled since it forces enabled=true on the renderer (only seems to affect mob characters)
+                var bgBoxCollider = __instance.GetComponent<BgBoxCollider>();
+                if (bgBoxCollider != null) bgBoxCollider.enabled = !isDecensor;
+
                 var renderer = ___RendeCheck ? (Renderer)__instance.GetComponent<SkinnedMeshRenderer>() : __instance.GetComponent<MeshRenderer>();
                 renderer.enabled = !isDecensor;
-
-                var overrideEye = __instance.GetComponent<OverrideEye>();
-                if (overrideEye.enabled)
-                    overrideEye.enabled = !isDecensor;
             }
 
             [HarmonyPostfix]
