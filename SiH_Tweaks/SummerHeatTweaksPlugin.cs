@@ -52,7 +52,7 @@ namespace SiH_Tweaks
 
             _configMan = (ConfigurationManager.ConfigurationManager)Chainloader.PluginInfos[ConfigurationManager.ConfigurationManager.GUID].Instance;
 
-            _showDebugMode = Config.Bind("General", "Open debug menu", KeyboardShortcut.Empty, "Pressing this key on the Title screen will open the debug menu. It's not meant to be used by users but still works to unlock everything or change story progress.");
+            _showDebugMode = Config.Bind("General", "Open debug menu", KeyboardShortcut.Empty, "If for some reason you can't use the official way to open the debug menu (hold left alt and click the top of Otoha's head a few times on the title screen) you can set a key that will open the debug menu instead (has to be pressed on the title screen).");
 
             _showConfigManButton = Config.Bind("General", "Show Plugin settings button in the Settings screen", true, "Changes take effect after a game restart.");
 
