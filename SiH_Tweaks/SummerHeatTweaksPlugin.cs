@@ -164,6 +164,10 @@ namespace SiH_Tweaks
                 button.onClick_L.Clear();
 
                 button.onClick_L.Add(new EventDelegate(() => _configMan.DisplayingWindow = true));
+
+                var trigger = newbt.GetComponent<UIEventTrigger>();
+                trigger.onHoverOver.Clear();
+                trigger.onHoverOver.Add(new EventDelegate(() => FindObjectOfType<ConfigHelp>().HelpLabel.text = "Open BepInEx plugin settings"));
             }
 
             /// <summary>
