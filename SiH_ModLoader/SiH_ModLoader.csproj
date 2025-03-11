@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- This is the master version, only change this one -->
+    <Version>0.1</Version>
+
+    <!-- Sets the 'Product name' field on the dll file -->
+    <Product>Mod Loader</Product>
+    <!-- Sets the 'File description' field on the dll file -->
+    <AssemblyTitle>Mod Loader</AssemblyTitle>
+
+    <TargetFramework>net471</TargetFramework>
+    <OutputType>Library</OutputType>
+
+    <OutputPath>..\bin\ModLoader</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+    <!-- Needed by publicized assembly -->
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);TRACE;DEBUG</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\lib-stripped-publicized\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IllusionLibs.BepInEx" Version="5.4.22">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.ImageConversionModule" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.IMGUIModule" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.InputLegacyModule" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UI" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UIModule" Version="2019.4.9">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.XUnity.AutoTranslator.Plugin.Core" Version="4.18.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0">
+      <IncludeAssets>compile</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>
