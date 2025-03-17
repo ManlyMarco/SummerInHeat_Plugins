@@ -11,7 +11,8 @@
     <TargetFramework>net471</TargetFramework>
     <OutputType>Library</OutputType>
 
-    <OutputPath>..\bin\ModLoader</OutputPath>
+    <OutputPath>E:\SummerInHeat\main-Ver1.01-DLsite\GameData\BepInEx\scripts</OutputPath>
+    <!--<OutputPath>..\bin\ModLoader</OutputPath>-->
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
     <!-- Needed by publicized assembly -->
@@ -39,6 +40,7 @@
       <IncludeAssets>compile</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.AssetBundleModule" Version="2019.4.9" />
     <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule" Version="2019.4.9">
       <IncludeAssets>compile</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
