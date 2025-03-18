@@ -30,7 +30,7 @@ namespace SiH_ModLoader
             }
             else
             {
-                SummerHeatTweaksPlugin.Logger.LogWarning("Could not find method AutoTranslator.Default.TranslateAsync");
+                SummerHeatModLoaderPlugin.Logger.LogWarning("Could not find method AutoTranslator.Default.TranslateAsync");
                 _translatorCallback = null;
             }
         }
