@@ -205,7 +205,7 @@ namespace SiH_Tweaks
                 IEnumerator CoPostifx(IEnumerator orig)
                 {
                     yield return orig;
-                    var log = __instance.AllLog.Last();
+                    var log = __instance.AllLog.LastOrDefault();
                     if (!string.IsNullOrWhiteSpace(log?.TextLog))
                     {
                         var split = log.TextLog.Split(new[] { '\n' }, 2, StringSplitOptions.None);
