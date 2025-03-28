@@ -233,6 +233,34 @@ namespace SiH_Tweaks
                     __instance.DebugLog.text = "";
                 }
             }
+
+            /// <summary>
+            /// Fix the text width in the talk and koekake scenes
+            /// </summary>
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(FH_Controller), nameof(FH_Controller.Awake_Method))]
+            private static void FH_Controller_Awake_Postfix(FH_Controller __instance)
+            {
+                if (!_isJp && __instance.enabled)
+                {
+                    // HACK: Make text not flow all the way to the screen edges to make it easier to read and look better. The character name is still randomly placed vertically.
+                    // To fix this properly the stock logic of having newlines in text and counting them to set position of the name would need to be replaced (KoekakeName)
+                    __instance.KoekakeText.width = 1010;
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(Talk_Controller), nameof(Talk_Controller.Awake_Method))]
+            private static void Talk_Controller_Awake_Postfix(Talk_Controller __instance)
+            {
+                if (!_isJp && __instance.enabled)
+                {
+                    // HACK: Make text not flow all the way to the screen edges to make it easier to read and look better. The character name is still randomly placed vertically.
+                    // To fix this properly the stock logic of having newlines in text and counting them to set position of the name would need to be replaced (TalkName)
+                    __instance.TalkText.width = 1010;
+                }
+            }
+
         }
     }
 }
