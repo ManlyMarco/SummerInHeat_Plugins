@@ -38,6 +38,15 @@ namespace SiH_Uncensor
 
         private static class Hooks
         {
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(SaveCheck), nameof(SaveCheck.Awake))]
+            private static void SaveCheck_Awake_Postfix()
+            {
+                // This is always false in the dmm version but not others for some reason
+                // Set to off to fix some ADV scenes still having the backside mosaic
+                ConfigClass.AnalMoza = false;
+            }
+
             #region Mosaic on/off
             
             /// <summary>
